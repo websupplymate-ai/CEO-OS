@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Platform Admin — CEO OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1B4F8C; --primary-tint: #EAF2FF;
+    --secondary: #2F8F5B; --secondary-tint: #E7F6EC;
+    --bg: #FFFFFF; --bg-card: #F7F9FC; --border: #E5E9EF;
+    --text: #10151D; --text-muted: #6B7686;
+    --warn: #B7791F; --warn-tint: #FBF2E3;
+    --radius-card: 10px; --radius-btn: 6px; --radius-icon: 8px;
+  }
+  [data-theme="dark"] {
+    --primary: #4A90D9; --primary-tint: #1A2533;
+    --secondary: #52C57F; --secondary-tint: #16271E;
+    --bg: #0E141C; --bg-card: #141C27; --border: #243042;
+    --text: #F2F5F9; --text-muted: #8B97A8;
+    --warn: #D9A441; --warn-tint: #241E12;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 10; }
+  .back-link { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+  .back-link:hover { color: var(--primary); }
+  .icon-btn { width: 34px; height: 34px; border-radius: var(--radius-btn); border: 1px solid var(--border); background: var(--bg-card); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); font-size: 15px; }
+  .shell { max-width: 900px; margin: 0 auto; padding: 28px; }
+  .page-head h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+  .page-head p { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+  .notice { background: var(--warn-tint); color: var(--warn); font-size: 12.5px; padding: 10px 14px; border-radius: var(--radius-btn); margin-bottom: 20px; line-height: 1.5; }
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 8px 16px; }
+  .user-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 0; border-bottom: 1px solid var(--border); }
+  .user-row:last-child { border-bottom: none; }
+  .user-left { display: flex; align-items: center; gap: 12px; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--primary-tint); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; }
+  .user-name { font-size: 13.5px; font-weight: 500; }
+  .user-meta { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+  .role-badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; background: var(--secondary-tint); color: var(--secondary); }
+  .empty { text-align: center; padding: 40px; color: var(--text-muted); font-size: 13px; }
+</style>
+</head>
+<body data-theme="light">
+  <div class="topbar">
+    <a href="../../index.html" class="back-link">← Back to CEO OS</a>
+    <button class="icon-btn" id="themeToggle">☀</button>
+  </div>
+  <div class="shell">
+    <div class="page-head">
+      <h1>Platform admin</h1>
+      <p>Users, roles, and department ownership across the platform.</p>
+    </div>
+    <div class="notice">
+      Read-only for now. This is a directory, not an access-control system — it doesn't yet gate what anyone can do (Doc 07's login/RBAC layer isn't built). Treat it as a reference, not a security boundary.
+    </div>
+    <div class="card" id="userList"><div class="empty">Loading…</div></div>
+  </div>
+
+<script>
+  const root = document.body;
+  const toggle = document.getElementById('themeToggle');
+  function applyTheme(t) { root.setAttribute('data-theme', t); toggle.textContent = t === 'dark' ? '☾' : '☀'; localStorage.setItem('sap-theme', t); }
+  applyTheme(localStorage.getItem('sap-theme') || 'light');
+  toggle.addEventListener('click', () => applyTheme(root.getAttribute('data-theme') === 'light' ? 'dark' : 'light'));
+
+  const CONNECTOR_BASE = new URLSearchParams(location.search).get('connector') || 'https://platform-data-connector.web-supplymate.workers.dev';
+
+  function initials(name) {
+    return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  }
+
+  async function load() {
+    try {
+      const res = await fetch(`${CONNECTOR_BASE}/connector/ceo-os/Users_Roles`);
+      const data = await res.json();
+      const rows = data.rows || [];
+      if (!rows.length) { document.getElementById('userList').innerHTML = '<div class="empty">No users found.</div>'; return; }
+      document.getElementById('userList').innerHTML = rows.map(u => `
+        <div class="user-row">
+          <div class="user-left">
+            <div class="avatar">${initials(u.User_Name)}</div>
+            <div>
+              <div class="user-name">${u.User_Name}</div>
+              <div class="user-meta">${u.Email} · ${u.Department} · last active ${u.Last_Active}</div>
+            </div>
+          </div>
+          <span class="role-badge">${u.Role}</span>
+        </div>`).join('');
+    } catch (err) {
+      document.getElementById('userList').innerHTML = '<div class="empty">Could not reach the Platform Data Connector.</div>';
+    }
+  }
+  load();
+</script>
+</body>
+</html>
