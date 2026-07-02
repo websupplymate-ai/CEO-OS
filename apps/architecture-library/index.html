@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture Library — CEO OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1B4F8C; --primary-tint: #EAF2FF;
+    --secondary: #2F8F5B; --secondary-tint: #E7F6EC;
+    --bg: #FFFFFF; --bg-card: #F7F9FC; --border: #E5E9EF;
+    --text: #10151D; --text-muted: #6B7686;
+    --radius-card: 10px; --radius-btn: 6px; --radius-icon: 8px;
+  }
+  [data-theme="dark"] {
+    --primary: #4A90D9; --primary-tint: #1A2533;
+    --secondary: #52C57F; --secondary-tint: #16271E;
+    --bg: #0E141C; --bg-card: #141C27; --border: #243042;
+    --text: #F2F5F9; --text-muted: #8B97A8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 10; }
+  .back-link { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+  .back-link:hover { color: var(--primary); }
+  .icon-btn { width: 34px; height: 34px; border-radius: var(--radius-btn); border: 1px solid var(--border); background: var(--bg-card); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); font-size: 15px; }
+  .layout { display: grid; grid-template-columns: 300px 1fr; max-width: 1200px; margin: 0 auto; min-height: calc(100vh - 63px); }
+  .sidebar { border-right: 1px solid var(--border); padding: 20px 12px; }
+  .sidebar-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); padding: 0 12px 10px; }
+  .doc-item { display: block; padding: 10px 12px; border-radius: var(--radius-btn); cursor: pointer; margin-bottom: 2px; }
+  .doc-item:hover { background: var(--bg-card); }
+  .doc-item.active { background: var(--primary-tint); }
+  .doc-num { font-size: 10.5px; color: var(--text-muted); font-weight: 500; }
+  .doc-item.active .doc-num { color: var(--primary); }
+  .doc-name { font-size: 13px; font-weight: 500; margin-top: 1px; }
+  .doc-item.active .doc-name { color: var(--primary); }
+  .content { padding: 32px 40px; }
+  .content h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+  .content .doc-purpose { font-size: 13.5px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.6; }
+  .section-block { margin-bottom: 22px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .section-block:last-child { border-bottom: none; }
+  .section-title { font-size: 14.5px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .section-title .icon { width: 22px; height: 22px; border-radius: 6px; background: var(--secondary-tint); color: var(--secondary); display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
+  .section-points { font-size: 13px; color: var(--text); line-height: 1.7; padding-left: 30px; }
+  .section-points li { margin-bottom: 2px; }
+  @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 1px solid var(--border); } }
+</style>
+</head>
+<body data-theme="light">
+  <div class="topbar">
+    <a href="../../index.html" class="back-link">← Back to CEO OS</a>
+    <button class="icon-btn" id="themeToggle">☀</button>
+  </div>
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sidebar-title">12 architecture documents</div>
+      <div id="docList"></div>
+    </div>
+    <div class="content" id="docContent"></div>
+  </div>
+
+<script>
+  const root = document.body;
+  const toggle = document.getElementById('themeToggle');
+  function applyTheme(t) { root.setAttribute('data-theme', t); toggle.textContent = t === 'dark' ? '☾' : '☀'; localStorage.setItem('sap-theme', t); }
+  applyTheme(localStorage.getItem('sap-theme') || 'light');
+  toggle.addEventListener('click', () => applyTheme(root.getAttribute('data-theme') === 'light' ? 'dark' : 'light'));
+
+  const DOCS = [
+    { num: '01', name: 'Platform Constitution', purpose: 'The founding principles of how SupplyMate builds software — mission, vision, and the ten first principles every future decision is checked against.',
+      sections: [
+        ['Mission & Vision', 'Build the world\\'s most modular AI-native business operating platform — not a dashboard, ERP, CRM, or AI tool collection, but a modular operating platform.'],
+        ['Ten First Principles', 'Modularity before complexity · Platform before application · Configuration before code · Human approval before automation · Replaceability · Documentation before development · One problem, one application · Shared user experience · Everything observable · The platform is permanent, applications are temporary.'],
+        ['The Golden Rules', 'Never duplicate code, prompts, APIs, authentication, settings, permissions, AI integrations, storage, notifications, or workflows — always reuse or centralize.'],
+        ['Decision Framework', 'Ten questions asked before building anything: is this platform, department, or application functionality? Is it reusable? Can it be configured or replaced later?'],
+        ['Platform Kernel / Capability Registry / AI Evaluation Layer', 'Three concepts added after Doc 01\\'s first pass: a minimal stable kernel, a registry of business capabilities instead of apps, and structured recording of every AI interaction\\'s performance.'],
+      ]},
+    { num: '02', name: 'Business Philosophy', purpose: 'How SupplyMate operates as an AI-first organization — the philosophy behind decisions, automation, knowledge, and continuous improvement.',
+      sections: [
+        ['Core Beliefs', 'AI assists, humans decide · knowledge is a company asset · build once, reuse forever · continuous improvement · transparency · simplicity before sophistication.'],
+        ['AI Philosophy & Role Definition', 'SupplyMate stays AI-provider independent. Every provider is a tool, not a dependency. Model choice is based on measured business outcomes, not assumptions.'],
+        ['Human-in-the-Loop Philosophy', 'Four stages of automation: human does it manually → AI assists → AI drafts, human approves → AI automates low-risk work with monitoring.'],
+        ['Data & Google Workspace Philosophy', 'Data belongs to the business, not the software — must stay portable and exportable. Google Workspace is enhanced, not immediately replaced.'],
+        ['Decision-Making Framework & Success Metrics', 'Ten questions before any new feature; success measured by faster decisions, higher accuracy, less repetitive work — never by automation for its own sake.'],
+      ]},
+    { num: '03', name: 'Platform Technical Architecture', purpose: 'The complete technical architecture — how components communicate, how apps are built, how AI providers are integrated, how new applications get added.',
+      sections: [
+        ['Platform Layers', 'Infrastructure → Platform Kernel → Shared Services → Business Operating Systems → Applications. Five layers, each building on the one below.'],
+        ['Platform Kernel', 'Authentication, permissions, navigation, theme, settings, component library, audit logs, global search, notifications — the only things every app absolutely needs.'],
+        ['Universal AI Architecture & AI Router', 'Applications never talk to AI providers directly. Every request flows through Router → Prompt Engine → Provider Adapter → Response Validation → Human Approval.'],
+        ['Universal API Manager & Data Connector', 'One place for every external integration and every data source (Sheets, CSV, database, ERP) — apps never touch raw storage or hold API keys.'],
+        ['Repository & Deployment Architecture', 'One repo per Operating System, independent Cloudflare deployment per OS, independent rollback — no deployment interrupts another app.'],
+        ['Approval / Notification / Search Engines', 'Shared, platform-wide services for approvals, notifications, and search — never duplicated inside individual apps.'],
+      ]},
+    { num: '04', name: 'Enterprise Data Architecture', purpose: 'How data is created, stored, shared, synchronized, secured, and used — the single source of truth strategy.',
+      sections: [
+        ['SupplyMate Digital Twin', 'The platform maintains a living digital representation of the real business — customers, orders, inventory, finance — with no duplicate realities.'],
+        ['Master, Transaction & Reference Data', 'Master data (customers, vendors, fabrics) exists once and is referenced everywhere; transactions record activity; reference data defines business rules.'],
+        ['Google Sheets First Strategy', 'Sheets are a supported operational database, not a migration target. Progressive path: read-only → read/write → hybrid with database → database primary.'],
+        ['Entity, Event & Relationship Architecture', 'Every business object (customer, order, invoice) is a reusable Entity with events and relationships tracked — not isolated records.'],
+        ['Version Control & Data Lifecycle', 'Every important record supports versioning and rollback. Records move through created → validated → approved → archived → retained.'],
+      ]},
+    { num: '04A', name: 'Enterprise Architecture Enhancement Framework', purpose: 'Twenty permanent principles that emerged while writing Docs 01–04, consolidated so they don\\'t get lost as discussion notes.',
+      sections: [
+        ['Platform-First & Capability Architecture', 'Design as a platform, not a collection of apps. Describe the business through reusable capabilities (e.g. "Generate quotation"), not software features.'],
+        ['Enterprise Business Objects & Event-Driven Enterprise', 'Standardized objects (Customer, Vendor, Invoice…) shared across every app; business activity represented as a stream of events, not just current-state records.'],
+        ['Business Rules Engine & Organizational Memory', 'Rules (pricing, approval limits) live outside application code, centrally configured. Institutional knowledge is preserved independent of any one employee.'],
+        ['AI Responsibility Matrix & Benchmarking', 'Every AI-assisted action has a defined responsibility level (suggest/draft/approve/execute); providers are continuously compared on real business tasks.'],
+        ['Plugin Architecture, Marketplace & Governance', 'Platform functionality expands through plugins; long-term the platform supports install/enable/disable like an app store, under defined governance.'],
+      ]},
+    { num: '05', name: 'Enterprise AI Architecture', purpose: 'The blueprint for the Intelligence Layer — modular, measurable, replaceable, and explainable AI across every department.',
+      sections: [
+        ['Intelligence Layer & AI Router', 'Sits above every application: Business Capability → AI Router → Context Engine → Prompt Engine → Provider Adapter → AI Provider → Human Approval.'],
+        ['Provider & Model Registry', 'Every AI provider and model is registered centrally with pricing, latency, capabilities, and health status — enabled or disabled without touching apps.'],
+        ['Prompt Architecture & Library', 'Prompts are reusable enterprise assets with versioning, ownership, and approval status — never hardcoded inside an application.'],
+        ['AI Responsibility Matrix & Human Approval Layer', 'Every capability has a defined autonomy level, from "observe" to "execute (low-risk only)" — critical decisions always keep a human in the loop.'],
+        ['AI Benchmarking, Cost Intelligence & Learning Loop', 'Providers are compared on real tasks; usage and cost are tracked by department; every interaction feeds back into better future recommendations.'],
+        ['Agent Framework', 'Department-level agents (Sales Agent, Finance Agent…) orchestrate multiple skills around a business role — agents provide intelligence, apps provide interfaces.'],
+      ]},
+    { num: '06', name: 'Enterprise Experience & Design System', purpose: 'The unified UX/UI standard so every application feels like one ecosystem, regardless of who builds it.',
+      sections: [
+        ['Design Philosophy & Brand Personality', 'Enterprise-grade simplicity — professional, reliable, modern, and calm. The interface should inspire trust, not excitement.'],
+        ['Color System & Typography', 'SupplyMate Blue (primary) and Green (secondary/success), with neutral, amber, and red reserved for state. Inter for UI text; a monospace face for data.'],
+        ['Layout & Navigation Standards', 'Every app follows the same five zones: navigation, context, workspace, assistant, actions — users should always know where they are.'],
+        ['AI Experience & Comparison Interface', 'Every AI panel shows provider, model, prompt version, cost, and confidence — AI outputs from multiple providers can be compared side by side.'],
+        ['Design Tokens & Principles', 'Consistency before creativity, function before decoration, speed before animation — all visual values centralized so one token change updates the whole platform.'],
+      ]},
+    { num: '07', name: 'Identity, Security & Governance Architecture', purpose: 'The enterprise trust framework — identity, permissions, approvals, audit, and compliance, inherited automatically by every app.',
+      sections: [
+        ['Identity & Role-Based Access Control', 'One identity per person across the whole platform. Permissions assigned through roles, inherited down from Platform → OS → Application → Record → Field.'],
+        ['Approval Architecture', 'A shared platform service — approval chains are configurable per workflow, not built separately inside each app.'],
+        ['API Key & Secret Management', 'Secrets are never hardcoded, never exposed to users, encrypted at rest, and rotated periodically — managed centrally, requested by apps at runtime.'],
+        ['Audit Architecture', 'Every important action generates an immutable audit record: who, what, when, previous value, new value, AI provider and prompt version if relevant.'],
+        ['Security Monitoring & Business Continuity', 'Continuous monitoring for failed logins, permission violations, and provider outages; the platform is designed to keep functioning through partial failures.'],
+      ]},
+    { num: '08', name: 'Development Standards & Engineering Playbook', purpose: 'The mandatory engineering process so every application is built the same way, regardless of who develops it.',
+      sections: [
+        ['AI-Assisted Development Workflow', 'ChatGPT as Enterprise Architect (planning) → Claude as Principal Software Engineer (build) → Grok for research → Gemini for media.'],
+        ['Application Manifest', 'No coding begins until purpose, inputs, outputs, AI requirements, permissions, and acceptance criteria are documented and approved.'],
+        ['Repository & Naming Standards', 'One independent repo per application area with a standard folder structure — Frontend, Backend, Components, AI, Data, Tests, Documentation.'],
+        ['Shared Component & Services Rules', 'Applications reuse platform components and services (auth, AI Router, approvals) — Claude is explicitly instructed to never duplicate these.'],
+        ['Git, Deployment & Quality Gates', 'Feature branch → review → merge → Cloudflare deploy → monitoring. Every deployment supports rollback; nothing ships without passing quality gates.'],
+      ]},
+    { num: '08A', name: 'Engineering Excellence Framework', purpose: 'Cross-cutting engineering standards that apply to every repository, workflow, and deployment across the platform.',
+      sections: [
+        ['Platform Kernel Protection & Component Registry', 'The Kernel gets stricter review than applications; every reusable UI component is catalogued with an owner and version.'],
+        ['Application, Integration & Prompt Registries', 'Every application, integration, and prompt is centrally catalogued — this is how the platform avoids solving the same problem twice.'],
+        ['Feature & Release Management', 'Features roll out gradually (experimental → beta → production); every release records affected apps, testing results, and a rollback plan.'],
+        ['Architecture Decision Records (ADR)', 'Major technical decisions are documented — problem, alternatives considered, decision, reasoning, and a review date.'],
+        ['Platform Maturity Model', 'Five levels: Prototype → Operational → Standardized → Intelligent → Self-Optimizing. Every application is assessed against the same scale.'],
+      ]},
+    { num: '09', name: 'Platform Infrastructure, Deployment & Operations Architecture', purpose: 'The real, current infrastructure workflow — Claude, GitHub, and Cloudflare — plus the roadmap toward more automation.',
+      sections: [
+        ['Current Four-System Architecture', 'ChatGPT (architecture) → Claude (engineering) → GitHub (version control) → Cloudflare (deployment). Each system has exactly one responsibility.'],
+        ['Phase One Repository Strategy', 'One Claude Project, one GitHub repo, and one Cloudflare deployment per Operating System, with multiple applications inside each — deliberately simple for now.'],
+        ['Phase Two Evolution Strategy', 'Mature, business-critical applications may later graduate into their own independent repository without restructuring the rest of the platform.'],
+        ['Environment & Secret Management', 'Development, testing, staging, and production each carry independent configuration and secrets — nothing is ever hardcoded into source.'],
+        ['Long-Term Automation Vision', 'The target workflow removes the last manual step (pushing to GitHub) entirely: Founder approves, the platform executes end to end.'],
+      ]},
+    { num: '10', name: 'Enterprise Operating Blueprint', purpose: 'How the six Operating Systems actually run the business day to day, and the roadmap for building out roughly fifty applications.',
+      sections: [
+        ['Six Operating Systems', 'CEO, Management, Finance, Sales, Marketing, and Operations OS — the permanent top-level structure; new functions become apps inside these, not new top-level OS.'],
+        ['CEO Operating System', 'The Executive Intelligence Center — company-wide KPIs, department summaries, strategic recommendations — plus founder-level tools like AI Benchmarking and the Approval Center.'],
+        ['Application Portfolio & Tiering', 'Roughly fifty applications targeted across all six OS, split into Tier 1 (core business apps) and Tier 2 (utilities) so the core workspace never gets cluttered.'],
+        ['Universal Development Checklist', 'Twelve checks — business problem, manifest, data sources, AI and API requirements, permissions, reports — completed before any application build begins.'],
+        ['Platform Growth Roadmap', 'Phase 1: build core OS and ~50 apps. Phase 2: deeper automation and AI orchestration. Phase 3: external-facing portals for customers, vendors, and partners.'],
+      ]},
+  ];
+
+  function renderList(activeIdx) {
+    document.getElementById('docList').innerHTML = DOCS.map((d, i) => `
+      <div class="doc-item ${i === activeIdx ? 'active' : ''}" data-idx="${i}">
+        <div class="doc-num">DOCUMENT ${d.num}</div>
+        <div class="doc-name">${d.name}</div>
+      </div>`).join('');
+  }
+
+  function renderContent(idx) {
+    const d = DOCS[idx];
+    document.getElementById('docContent').innerHTML = `
+      <h1>Document ${d.num} — ${d.name}</h1>
+      <div class="doc-purpose">${d.purpose}</div>
+      ${d.sections.map((s, i) => `
+        <div class="section-block">
+          <div class="section-title"><span class="icon">${i + 1}</span>${s[0]}</div>
+          <ul class="section-points"><li>${s[1]}</li></ul>
+        </div>`).join('')}
+    `;
+  }
+
+  function show(idx) { renderList(idx); renderContent(idx); }
+  document.getElementById('docList').addEventListener('click', (e) => {
+    const item = e.target.closest('.doc-item');
+    if (item) show(parseInt(item.dataset.idx));
+  });
+
+  show(0);
+</script>
+</body>
+</html>
