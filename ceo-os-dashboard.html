@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEO OS — SupplyMate AI Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1B4F8C;
+    --primary-tint: #EAF2FF;
+    --secondary: #2F8F5B;
+    --secondary-tint: #E7F6EC;
+    --bg: #FFFFFF;
+    --bg-card: #F7F9FC;
+    --border: #E5E9EF;
+    --text: #10151D;
+    --text-muted: #6B7686;
+    --warn: #B7791F;
+    --warn-tint: #FBF2E3;
+    --danger: #C0392B;
+    --danger-tint: #FBEAE8;
+    --radius-card: 10px;
+    --radius-btn: 6px;
+    --radius-icon: 8px;
+  }
+
+  [data-theme="dark"] {
+    --primary: #4A90D9;
+    --primary-tint: #1A2533;
+    --secondary: #52C57F;
+    --secondary-tint: #16271E;
+    --bg: #0E141C;
+    --bg-card: #141C27;
+    --border: #243042;
+    --text: #F2F5F9;
+    --text-muted: #8B97A8;
+    --warn: #D9A441;
+    --warn-tint: #241E12;
+    --danger: #E0685A;
+    --danger-tint: #2A1512;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-weight: 400;
+    transition: background 0.15s ease, color 0.15s ease;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  a { color: inherit; text-decoration: none; }
+
+  /* ---------- Header ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-mark {
+    width: 34px; height: 34px; border-radius: var(--radius-icon);
+    background: var(--primary-tint); color: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 14px;
+  }
+  .brand-text { line-height: 1.2; }
+  .brand-text .app-name { font-weight: 600; font-size: 15px; }
+  .brand-text .app-sub { font-size: 12px; color: var(--text-muted); }
+
+  .topbar-search {
+    flex: 1; max-width: 420px; margin: 0 24px;
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-btn); padding: 8px 12px;
+    color: var(--text-muted); font-size: 13px;
+  }
+
+  .topbar-right { display: flex; align-items: center; gap: 14px; }
+
+  .icon-btn {
+    width: 34px; height: 34px; border-radius: var(--radius-btn);
+    border: 1px solid var(--border); background: var(--bg-card);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-muted); font-size: 15px;
+    position: relative;
+  }
+  .icon-btn:hover { color: var(--text); }
+  .notif-dot {
+    position: absolute; top: -3px; right: -3px; width: 9px; height: 9px;
+    border-radius: 50%; background: var(--danger); border: 2px solid var(--bg);
+  }
+
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--secondary-tint); color: var(--secondary);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 13px;
+  }
+
+  /* ---------- Layout ---------- */
+  .shell { max-width: 1320px; margin: 0 auto; padding: 28px; }
+
+  .page-head { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 22px; flex-wrap: wrap; gap: 12px; }
+  .page-head h1 { font-size: 22px; font-weight: 600; }
+  .page-head p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+  .read-only-pill {
+    font-size: 11.5px; font-weight: 500; color: var(--text-muted);
+    border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .read-only-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--secondary); }
+
+  .section-title {
+    font-size: 14px; font-weight: 600; margin: 32px 0 12px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .section-title .link { font-size: 12.5px; font-weight: 500; color: var(--primary); }
+  .section-title:first-of-type { margin-top: 0; }
+
+  /* ---------- Cards ---------- */
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-card); padding: 16px;
+  }
+
+  /* KPI grid */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .kpi-card { display: flex; flex-direction: column; gap: 10px; }
+  .kpi-top { display: flex; align-items: center; justify-content: space-between; }
+  .kpi-icon {
+    width: 30px; height: 30px; border-radius: var(--radius-icon);
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+  .kpi-icon.blue { background: var(--primary-tint); color: var(--primary); }
+  .kpi-icon.green { background: var(--secondary-tint); color: var(--secondary); }
+  .kpi-trend { font-size: 12px; font-weight: 500; }
+  .kpi-trend.up { color: var(--secondary); }
+  .kpi-trend.down { color: var(--danger); }
+  .kpi-label { font-size: 12.5px; color: var(--text-muted); }
+  .kpi-value { font-size: 22px; font-weight: 600; }
+
+  /* Two column layout */
+  .grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: start; }
+
+  /* Yesterday summary */
+  .summary-list { display: flex; flex-direction: column; }
+  .summary-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  .summary-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .summary-row:first-child { padding-top: 0; }
+  .summary-label { display: flex; align-items: center; gap: 10px; color: var(--text); }
+  .summary-label .tag-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .summary-value { font-weight: 500; }
+  .summary-sub { color: var(--text-muted); font-size: 12px; margin-left: 4px; }
+
+  /* Priorities */
+  .priority-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .priority-item:last-child { border-bottom: none; }
+  .priority-num {
+    width: 22px; height: 22px; border-radius: 6px; background: var(--primary-tint);
+    color: var(--primary); font-size: 11.5px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+  }
+  .priority-text { font-size: 13px; }
+  .priority-text .meta { display: block; font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Department grid */
+  .dept-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .dept-card { display: flex; flex-direction: column; gap: 12px; }
+  .dept-head { display: flex; align-items: center; gap: 10px; }
+  .dept-icon {
+    width: 30px; height: 30px; border-radius: var(--radius-icon);
+    background: var(--primary-tint); color: var(--primary);
+    display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;
+  }
+  .dept-name { font-size: 13.5px; font-weight: 600; }
+  .dept-metric { display: flex; justify-content: space-between; font-size: 12.5px; padding: 3px 0; }
+  .dept-metric .m-label { color: var(--text-muted); }
+  .dept-metric .m-value { font-weight: 500; }
+  .dept-status {
+    font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 20px;
+    width: fit-content;
+  }
+  .status-good { background: var(--secondary-tint); color: var(--secondary); }
+  .status-watch { background: var(--warn-tint); color: var(--warn); }
+
+  /* Approvals */
+  .approval-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 0; border-bottom: 1px solid var(--border);
+  }
+  .approval-row:last-child { border-bottom: none; }
+  .approval-left { display: flex; align-items: center; gap: 12px; }
+  .approval-icon {
+    width: 32px; height: 32px; border-radius: var(--radius-icon);
+    background: var(--warn-tint); color: var(--warn);
+    display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0;
+  }
+  .approval-title { font-size: 13px; font-weight: 500; }
+  .approval-meta { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+  .approval-amount { font-size: 13px; font-weight: 500; text-align: right; }
+  .btn-view {
+    font-size: 12px; font-weight: 500; color: var(--primary);
+    border: 1px solid var(--border); border-radius: var(--radius-btn);
+    padding: 6px 12px; background: transparent; cursor: pointer;
+  }
+
+  /* Risks / opportunities */
+  .ro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .ro-item { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; }
+  .ro-item:last-child { border-bottom: none; }
+  .ro-dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+
+  /* Founder tools */
+  .tools-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  .tool-card {
+    display: flex; flex-direction: column; gap: 10px; cursor: pointer;
+    transition: border-color 0.15s ease;
+  }
+  .tool-card:hover { border-color: var(--primary); }
+  .tool-icon {
+    width: 30px; height: 30px; border-radius: var(--radius-icon);
+    background: var(--secondary-tint); color: var(--secondary);
+    display: flex; align-items: center; justify-content: center; font-size: 13px;
+  }
+  .tool-name { font-size: 12.5px; font-weight: 600; }
+  .tool-desc { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
+
+  footer {
+    border-top: 1px solid var(--border); margin-top: 36px; padding: 18px 28px;
+    display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-muted);
+    max-width: 1320px; margin-left: auto; margin-right: auto;
+  }
+
+  @media (max-width: 1080px) {
+    .kpi-grid, .dept-grid { grid-template-columns: repeat(2, 1fr); }
+    .tools-grid { grid-template-columns: repeat(3, 1fr); }
+    .grid-2, .ro-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 620px) {
+    .kpi-grid, .dept-grid, .tools-grid { grid-template-columns: 1fr; }
+    .topbar-search { display: none; }
+  }
+</style>
+</head>
+<body data-theme="light">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">SM</div>
+      <div class="brand-text">
+        <div class="app-name">CEO OS</div>
+        <div class="app-sub">Executive Intelligence Center</div>
+      </div>
+    </div>
+
+    <div class="topbar-search">
+      <span>⌕</span>
+      <span>Search the platform… <span class="mono" style="opacity:.7">Ctrl K</span></span>
+    </div>
+
+    <div class="topbar-right">
+      <button class="icon-btn" id="themeToggle" title="Toggle theme">☀</button>
+      <button class="icon-btn" title="Notifications">🔔<span class="notif-dot"></span></button>
+      <div class="avatar">MK</div>
+    </div>
+  </div>
+
+  <div class="shell">
+
+    <div class="page-head">
+      <div>
+        <h1>Good morning — here's where the business stands</h1>
+        <p>Thursday, 2 July 2026 · Summarized from Finance, Sales, Marketing &amp; Operations OS</p>
+      </div>
+      <div class="read-only-pill"><span class="dot"></span>Read-only · consumes data, never edits it</div>
+    </div>
+
+    <!-- KPI ROW -->
+    <div class="kpi-grid" id="kpiGrid">
+      <div class="card kpi-card">
+        <div class="kpi-top">
+          <div class="kpi-icon blue">₹</div>
+          <span class="kpi-trend up">▲ 8.2%</span>
+        </div>
+        <div class="kpi-label">Revenue (MTD)</div>
+        <div class="kpi-value mono">₹1.84 Cr</div>
+      </div>
+      <div class="card kpi-card">
+        <div class="kpi-top">
+          <div class="kpi-icon green">◎</div>
+          <span class="kpi-trend up">▲ 2.1%</span>
+        </div>
+        <div class="kpi-label">Gross margin</div>
+        <div class="kpi-value mono">41.6%</div>
+      </div>
+      <div class="card kpi-card">
+        <div class="kpi-top">
+          <div class="kpi-icon blue">⌘</div>
+          <span class="kpi-trend down">▼ 5</span>
+        </div>
+        <div class="kpi-label">Cash position</div>
+        <div class="kpi-value mono">₹62.3 L</div>
+      </div>
+      <div class="card kpi-card">
+        <div class="kpi-top">
+          <div class="kpi-icon green">✓</div>
+          <span class="kpi-trend up">6 new</span>
+        </div>
+        <div class="kpi-label">Pending approvals</div>
+        <div class="kpi-value mono">14</div>
+      </div>
+    </div>
+
+    <!-- YESTERDAY + PRIORITIES -->
+    <div class="section-title">What happened yesterday</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="summary-list" id="activityFeed">
+          <div class="summary-row">
+            <div class="summary-label"><span class="tag-dot" style="background:var(--secondary)"></span>4 new leads captured, 2 quotations sent</div>
+            <div class="summary-value">Sales OS</div>
+          </div>
+          <div class="summary-row">
+            <div class="summary-label"><span class="tag-dot" style="background:var(--primary)"></span>2 production orders completed, 1 delayed</div>
+            <div class="summary-value">Operations OS</div>
+          </div>
+          <div class="summary-row">
+            <div class="summary-label"><span class="tag-dot" style="background:var(--secondary)"></span>3 invoices raised, ₹4.1L collected</div>
+            <div class="summary-value">Finance OS</div>
+          </div>
+          <div class="summary-row">
+            <div class="summary-label"><span class="tag-dot" style="background:var(--primary)"></span>Content calendar published for next week</div>
+            <div class="summary-value">Marketing OS</div>
+          </div>
+          <div class="summary-row">
+            <div class="summary-label"><span class="tag-dot" style="background:var(--warn)"></span>Fabric stock for Order #2291 below threshold</div>
+            <div class="summary-value">Inventory alert</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:13px; font-weight:600; margin-bottom:4px;">Top priorities today</div>
+        <div id="prioritiesList">
+        <div class="priority-item">
+          <div class="priority-num">1</div>
+          <div class="priority-text">Approve vendor payment for Ashoka Textiles <span class="meta">₹3.2L · pending 2 days</span></div>
+        </div>
+        <div class="priority-item">
+          <div class="priority-num">2</div>
+          <div class="priority-text">Review delayed production order #2291 <span class="meta">Operations OS · fabric shortage</span></div>
+        </div>
+        <div class="priority-item">
+          <div class="priority-num">3</div>
+          <div class="priority-text">Sign off on Q3 marketing campaign budget <span class="meta">Marketing OS · awaiting since Tue</span></div>
+        </div>
+        <div class="priority-item">
+          <div class="priority-num">4</div>
+          <div class="priority-text">Weekly executive report ready for review <span class="meta">Auto-generated · 6:00 AM</span></div>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEPARTMENTS -->
+    <div class="section-title">Department performance<span class="link">View all reports →</span></div>
+    <div class="dept-grid" id="deptGrid">
+      <div class="card dept-card">
+        <div class="dept-head"><div class="dept-icon">Sa</div><div class="dept-name">Sales OS</div></div>
+        <div class="dept-metric"><span class="m-label">Pipeline value</span><span class="m-value mono">₹96L</span></div>
+        <div class="dept-metric"><span class="m-label">Open leads</span><span class="m-value mono">37</span></div>
+        <div class="dept-metric"><span class="m-label">Win rate</span><span class="m-value mono">28%</span></div>
+        <span class="dept-status status-good">On track</span>
+      </div>
+      <div class="card dept-card">
+        <div class="dept-head"><div class="dept-icon">Mk</div><div class="dept-name">Marketing OS</div></div>
+        <div class="dept-metric"><span class="m-label">Campaigns live</span><span class="m-value mono">5</span></div>
+        <div class="dept-metric"><span class="m-label">Content this wk</span><span class="m-value mono">12 pcs</span></div>
+        <div class="dept-metric"><span class="m-label">Engagement</span><span class="m-value mono">▲ 14%</span></div>
+        <span class="dept-status status-good">On track</span>
+      </div>
+      <div class="card dept-card">
+        <div class="dept-head"><div class="dept-icon">Op</div><div class="dept-name">Operations OS</div></div>
+        <div class="dept-metric"><span class="m-label">Orders in production</span><span class="m-value mono">18</span></div>
+        <div class="dept-metric"><span class="m-label">On-time rate</span><span class="m-value mono">82%</span></div>
+        <div class="dept-metric"><span class="m-label">Low stock items</span><span class="m-value mono">3</span></div>
+        <span class="dept-status status-watch">Needs attention</span>
+      </div>
+      <div class="card dept-card">
+        <div class="dept-head"><div class="dept-icon">Fi</div><div class="dept-name">Finance OS</div></div>
+        <div class="dept-metric"><span class="m-label">Receivables</span><span class="m-value mono">₹41L</span></div>
+        <div class="dept-metric"><span class="m-label">Payables</span><span class="m-value mono">₹22L</span></div>
+        <div class="dept-metric"><span class="m-label">Budget variance</span><span class="m-value mono">-3.1%</span></div>
+        <span class="dept-status status-good">On track</span>
+      </div>
+    </div>
+
+    <!-- APPROVALS + RISK/OPP -->
+    <div class="section-title">Pending approvals<span class="link">Open approval center →</span></div>
+    <div class="card" id="approvalsCard">
+      <div class="approval-row">
+        <div class="approval-left">
+          <div class="approval-icon">₹</div>
+          <div>
+            <div class="approval-title">Vendor payment — Ashoka Textiles</div>
+            <div class="approval-meta">Requested by Finance OS · 2 days pending</div>
+          </div>
+        </div>
+        <div class="approval-amount mono">₹3.20L</div>
+        <button class="btn-view">Review</button>
+      </div>
+      <div class="approval-row">
+        <div class="approval-left">
+          <div class="approval-icon">◷</div>
+          <div>
+            <div class="approval-title">Q3 marketing campaign budget</div>
+            <div class="approval-meta">Requested by Marketing OS · 3 days pending</div>
+          </div>
+        </div>
+        <div class="approval-amount mono">₹5.75L</div>
+        <button class="btn-view">Review</button>
+      </div>
+      <div class="approval-row">
+        <div class="approval-left">
+          <div class="approval-icon">▤</div>
+          <div>
+            <div class="approval-title">Purchase order — grey fabric restock</div>
+            <div class="approval-meta">Requested by Operations OS · today</div>
+          </div>
+        </div>
+        <div class="approval-amount mono">₹8.90L</div>
+        <button class="btn-view">Review</button>
+      </div>
+    </div>
+
+    <div class="section-title">Risks &amp; opportunities</div>
+    <div class="ro-grid">
+      <div class="card">
+        <div style="font-size:13px; font-weight:600; margin-bottom:6px;">Risks</div>
+        <div id="risksList">
+        <div class="ro-item"><span class="ro-dot" style="background:var(--danger)"></span>Fabric shortage may delay 3 more orders this week</div>
+        <div class="ro-item"><span class="ro-dot" style="background:var(--warn)"></span>Receivables aging past 60 days up 12% MoM</div>
+        <div class="ro-item"><span class="ro-dot" style="background:var(--warn)"></span>Two production lines running below capacity</div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px; font-weight:600; margin-bottom:6px;">Opportunities</div>
+        <div id="opportunitiesList">
+        <div class="ro-item"><span class="ro-dot" style="background:var(--secondary)"></span>Repeat-order rate up 9% — candidate for loyalty pricing</div>
+        <div class="ro-item"><span class="ro-dot" style="background:var(--secondary)"></span>Competitor pricing gap identified in formal wear segment</div>
+        <div class="ro-item"><span class="ro-dot" style="background:var(--secondary)"></span>Content engagement spike suggests scaling reel budget</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOUNDER TOOLS -->
+    <div class="section-title">Founder tools</div>
+    <div class="tools-grid">
+      <div class="card tool-card"><div class="tool-icon">◆</div><div class="tool-name">AI benchmarking</div><div class="tool-desc">Compare provider performance across tasks</div></div>
+      <div class="card tool-card"><div class="tool-icon">⚙</div><div class="tool-name">Platform admin</div><div class="tool-desc">Users, roles &amp; global settings</div></div>
+      <div class="card tool-card"><div class="tool-icon">▤</div><div class="tool-name">Architecture library</div><div class="tool-desc">All 12 platform architecture docs</div></div>
+      <div class="card tool-card"><div class="tool-icon">▲</div><div class="tool-name">Deployment overview</div><div class="tool-desc">5 repos · 5 Cloudflare deployments</div></div>
+      <div class="card tool-card"><div class="tool-icon">◉</div><div class="tool-name">Infrastructure health</div><div class="tool-desc">All systems operational</div></div>
+      <div class="card tool-card"><div class="tool-icon">⌥</div><div class="tool-name">Repository overview</div><div class="tool-desc">GitHub · websupplymate-ai</div></div>
+      <div class="card tool-card"><div class="tool-icon">₹</div><div class="tool-name">AI cost dashboard</div><div class="tool-desc">Spend by provider &amp; department</div></div>
+      <div class="card tool-card"><div class="tool-icon">♥</div><div class="tool-name">Platform health</div><div class="tool-desc">Uptime across all Operating Systems</div></div>
+      <div class="card tool-card"><div class="tool-icon">⌕</div><div class="tool-name">Enterprise search</div><div class="tool-desc">Search across every OS &amp; app</div></div>
+      <div class="card tool-card"><div class="tool-icon">✓</div><div class="tool-name">Final approval center</div><div class="tool-desc">14 items awaiting decision</div></div>
+    </div>
+
+  </div>
+
+  <footer>
+    <span>SupplyMate AI Platform · CEO OS v1.0</span>
+    <span id="syncStatus">Connecting to Platform Data Connector…</span>
+  </footer>
+
+<script>
+  const root = document.body;
+  const toggle = document.getElementById('themeToggle');
+
+  function applyTheme(theme) {
+    root.setAttribute('data-theme', theme);
+    toggle.textContent = theme === 'dark' ? '☾' : '☀';
+    localStorage.setItem('sap-theme', theme);
+  }
+
+  const saved = localStorage.getItem('sap-theme') || 'light';
+  applyTheme(saved);
+
+  toggle.addEventListener('click', () => {
+    const current = root.getAttribute('data-theme');
+    applyTheme(current === 'light' ? 'dark' : 'light');
+  });
+</script>
+
+<script>
+  // ---------------------------------------------------------------------
+  // Platform Data Connector integration (Doc 03 §10).
+  // This dashboard never talks to Google Sheets directly — only to the
+  // connector Worker. If the connector is unreachable, every section keeps
+  // showing the placeholder markup already in the HTML (no blank states).
+  // ---------------------------------------------------------------------
+  const CONNECTOR_BASE =
+    new URLSearchParams(location.search).get('connector') ||
+    'https://platform-data-connector.web-supplymate.workers.dev';
+  const SHEET_KEY = 'ceo-os';
+
+  async function fetchTab(tab) {
+    const res = await fetch(`${CONNECTOR_BASE}/connector/${SHEET_KEY}/${tab}`);
+    if (!res.ok) throw new Error(`${tab}: ${res.status}`);
+    const data = await res.json();
+    return data.rows || [];
+  }
+
+  function latestDate(rows, field = 'Date') {
+    return rows.reduce((max, r) => (r[field] > max ? r[field] : max), '');
+  }
+
+  function formatINR(n) {
+    if (n === null || n === undefined) return '—';
+    const abs = Math.abs(n);
+    if (abs >= 1e7) return `₹${(n / 1e7).toFixed(2)} Cr`;
+    if (abs >= 1e5) return `₹${(n / 1e5).toFixed(2)} L`;
+    return `₹${n.toLocaleString('en-IN')}`;
+  }
+
+  function pct(n) {
+    if (n === null || n === undefined) return '—';
+    return `${(n * 100).toFixed(1)}%`;
+  }
+
+  const TAG_COLOR = { Positive: 'var(--secondary)', Neutral: 'var(--primary)', Alert: 'var(--warn)' };
+  const DEPT_ICON = { 'Sales OS': 'Sa', 'Marketing OS': 'Mk', 'Operations OS': 'Op', 'Finance OS': 'Fi', 'Management OS': 'Mg' };
+
+  async function loadKPI() {
+    const rows = await fetchTab('KPI_Summary');
+    if (!rows.length) return;
+    const sorted = [...rows].sort((a, b) => (a.Date < b.Date ? 1 : -1));
+    const cur = sorted[0];
+    const kpis = [
+      { icon: 'blue', symbol: '₹', label: 'Revenue (MTD)', value: formatINR(cur.Revenue_MTD), trend: pct(cur.Revenue_Change_Pct), up: cur.Revenue_Change_Pct >= 0 },
+      { icon: 'green', symbol: '◎', label: 'Gross margin', value: pct(cur.Gross_Margin_Pct), trend: pct(cur.Margin_Change_Pct), up: cur.Margin_Change_Pct >= 0 },
+      { icon: 'blue', symbol: '⌘', label: 'Cash position', value: formatINR(cur.Cash_Position), trend: `${cur.Cash_Change >= 0 ? '▲' : '▼'} ${Math.abs(cur.Cash_Change)}`, up: cur.Cash_Change >= 0 },
+      { icon: 'green', symbol: '✓', label: 'Pending approvals', value: cur.Pending_Approvals_Count, trend: `${cur.New_Approvals_Count} new`, up: true },
+    ];
+    document.getElementById('kpiGrid').innerHTML = kpis.map(k => `
+      <div class="card kpi-card">
+        <div class="kpi-top">
+          <div class="kpi-icon ${k.icon}">${k.symbol}</div>
+          <span class="kpi-trend ${k.up ? 'up' : 'down'}">${k.trend}</span>
+        </div>
+        <div class="kpi-label">${k.label}</div>
+        <div class="kpi-value mono">${k.value}</div>
+      </div>`).join('');
+  }
+
+  async function loadActivityFeed() {
+    const rows = await fetchTab('Daily_Activity_Feed');
+    if (!rows.length) return;
+    const latest = latestDate(rows);
+    const items = rows.filter(r => r.Date === latest).sort((a, b) => a.Sort_Order - b.Sort_Order);
+    document.getElementById('activityFeed').innerHTML = items.map(r => `
+      <div class="summary-row">
+        <div class="summary-label"><span class="tag-dot" style="background:${TAG_COLOR[r.Tag_Type] || 'var(--primary)'}"></span>${r.Description}</div>
+        <div class="summary-value">${r.Department}</div>
+      </div>`).join('');
+  }
+
+  async function loadPriorities() {
+    const rows = await fetchTab('Priorities_Today');
+    if (!rows.length) return;
+    const latest = latestDate(rows);
+    const items = rows.filter(r => r.Date === latest).sort((a, b) => a.Rank - b.Rank);
+    document.getElementById('prioritiesList').innerHTML = items.map(r => `
+      <div class="priority-item">
+        <div class="priority-num">${r.Rank}</div>
+        <div class="priority-text">${r.Title} <span class="meta">${r.Meta_Detail}</span></div>
+      </div>`).join('');
+  }
+
+  async function loadDepartments() {
+    const rows = await fetchTab('Department_Performance');
+    if (!rows.length) return;
+    const byDept = {};
+    rows.forEach(r => {
+      if (!byDept[r.Department]) byDept[r.Department] = [];
+      byDept[r.Department].push(r);
+    });
+    const cards = Object.entries(byDept).map(([dept, metrics]) => {
+      const status = metrics[metrics.length - 1].Status || 'On track';
+      const statusClass = status === 'On track' ? 'status-good' : 'status-watch';
+      const metricRows = metrics.slice(0, 3).map(m => {
+        let val = m.Metric_Value;
+        if (m.Unit === 'INR') val = formatINR(val);
+        else if (m.Unit === 'percent') val = `${val}%`;
+        return `<div class="dept-metric"><span class="m-label">${m.Metric_Name}</span><span class="m-value mono">${val}</span></div>`;
+      }).join('');
+      return `
+      <div class="card dept-card">
+        <div class="dept-head"><div class="dept-icon">${DEPT_ICON[dept] || dept.slice(0, 2)}</div><div class="dept-name">${dept}</div></div>
+        ${metricRows}
+        <span class="dept-status ${statusClass}">${status}</span>
+      </div>`;
+    }).join('');
+    document.getElementById('deptGrid').innerHTML = cards;
+  }
+
+  async function loadApprovals() {
+    const rows = await fetchTab('Approvals_Queue');
+    if (!rows.length) return;
+    const pending = rows.filter(r => r.Status === 'Pending');
+    document.getElementById('approvalsCard').innerHTML = pending.map(r => `
+      <div class="approval-row">
+        <div class="approval-left">
+          <div class="approval-icon">₹</div>
+          <div>
+            <div class="approval-title">${r.Title}</div>
+            <div class="approval-meta">Requested by ${r.Department} · ${r.Days_Pending === 0 ? 'today' : r.Days_Pending + ' days pending'}</div>
+          </div>
+        </div>
+        <div class="approval-amount mono">${formatINR(r.Amount)}</div>
+        <button class="btn-view">Review</button>
+      </div>`).join('');
+  }
+
+  async function loadRisksOpportunities() {
+    const rows = await fetchTab('Risks_Opportunities');
+    if (!rows.length) return;
+    const risks = rows.filter(r => r.Type === 'Risk');
+    const opportunities = rows.filter(r => r.Type === 'Opportunity');
+    const sevColor = { High: 'var(--danger)', Medium: 'var(--warn)', Low: 'var(--secondary)' };
+    document.getElementById('risksList').innerHTML = risks.map(r => `
+      <div class="ro-item"><span class="ro-dot" style="background:${sevColor[r.Severity] || 'var(--warn)'}"></span>${r.Description}</div>`).join('');
+    document.getElementById('opportunitiesList').innerHTML = opportunities.map(r => `
+      <div class="ro-item"><span class="ro-dot" style="background:var(--secondary)"></span>${r.Description}</div>`).join('');
+  }
+
+  async function loadAll() {
+    const syncEl = document.getElementById('syncStatus');
+    try {
+      await Promise.all([
+        loadKPI(), loadActivityFeed(), loadPriorities(),
+        loadDepartments(), loadApprovals(), loadRisksOpportunities(),
+      ]);
+      syncEl.textContent = `Live · synced ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} from Platform Data Connector`;
+    } catch (err) {
+      console.warn('Data Connector unreachable, showing placeholder data:', err);
+      syncEl.textContent = 'Offline · showing placeholder data (Data Connector unreachable)';
+    }
+  }
+
+  loadAll();
+</script>
+
+</body>
+</html>
