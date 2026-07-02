@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Infrastructure Monitoring — CEO OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1B4F8C; --primary-tint: #EAF2FF;
+    --secondary: #2F8F5B; --secondary-tint: #E7F6EC;
+    --bg: #FFFFFF; --bg-card: #F7F9FC; --border: #E5E9EF;
+    --text: #10151D; --text-muted: #6B7686;
+    --warn: #B7791F; --warn-tint: #FBF2E3;
+    --radius-card: 10px; --radius-btn: 6px; --radius-icon: 8px;
+  }
+  [data-theme="dark"] {
+    --primary: #4A90D9; --primary-tint: #1A2533;
+    --secondary: #52C57F; --secondary-tint: #16271E;
+    --bg: #0E141C; --bg-card: #141C27; --border: #243042;
+    --text: #F2F5F9; --text-muted: #8B97A8;
+    --warn: #D9A441; --warn-tint: #241E12;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  a { color: inherit; text-decoration: none; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 10; }
+  .back-link { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+  .back-link:hover { color: var(--primary); }
+  .icon-btn { width: 34px; height: 34px; border-radius: var(--radius-btn); border: 1px solid var(--border); background: var(--bg-card); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); font-size: 15px; }
+  .shell { max-width: 900px; margin: 0 auto; padding: 28px; }
+  .page-head h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+  .page-head p { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .worker-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 16px; }
+  .worker-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .worker-name { font-size: 13.5px; font-weight: 600; }
+  .status-badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; }
+  .status-operational { background: var(--secondary-tint); color: var(--secondary); }
+  .status-degraded { background: var(--warn-tint); color: var(--warn); }
+  .metric-row { display: flex; justify-content: space-between; font-size: 12.5px; padding: 4px 0; }
+  .metric-row .m-label { color: var(--text-muted); }
+  .metric-row .m-value { font-weight: 500; }
+  .empty { text-align: center; padding: 40px; color: var(--text-muted); font-size: 13px; grid-column: 1 / -1; }
+  @media (max-width: 620px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body data-theme="light">
+  <div class="topbar">
+    <a href="../../index.html" class="back-link">← Back to CEO OS</a>
+    <button class="icon-btn" id="themeToggle">☀</button>
+  </div>
+  <div class="shell">
+    <div class="page-head">
+      <h1>Infrastructure health</h1>
+      <p>Requests and errors per Worker, last 24 hours.</p>
+    </div>
+    <div class="grid" id="workerGrid"><div class="empty">Loading…</div></div>
+  </div>
+
+<script>
+  const root = document.body;
+  const toggle = document.getElementById('themeToggle');
+  function applyTheme(t) { root.setAttribute('data-theme', t); toggle.textContent = t === 'dark' ? '☾' : '☀'; localStorage.setItem('sap-theme', t); }
+  applyTheme(localStorage.getItem('sap-theme') || 'light');
+  toggle.addEventListener('click', () => applyTheme(root.getAttribute('data-theme') === 'light' ? 'dark' : 'light'));
+
+  const OPS_BASE = new URLSearchParams(location.search).get('ops') || 'https://platform-ops-connector.web-supplymate.workers.dev';
+
+  async function load() {
+    try {
+      const res = await fetch(`${OPS_BASE}/infrastructure`);
+      const data = await res.json();
+      const workers = data.workers || [];
+      if (!workers.length) {
+        document.getElementById('workerGrid').innerHTML = '<div class="empty">No traffic in the last 24 hours yet — this fills in once your apps start getting requests.</div>';
+        return;
+      }
+      document.getElementById('workerGrid').innerHTML = workers.map(w => `
+        <div class="worker-card">
+          <div class="worker-head">
+            <div class="worker-name">${w.name}</div>
+            <span class="status-badge ${w.status === 'Operational' ? 'status-operational' : 'status-degraded'}">${w.status}</span>
+          </div>
+          <div class="metric-row"><span class="m-label">Requests (24h)</span><span class="m-value mono">${w.requests24h.toLocaleString()}</span></div>
+          <div class="metric-row"><span class="m-label">Errors (24h)</span><span class="m-value mono">${w.errors24h.toLocaleString()}</span></div>
+          <div class="metric-row"><span class="m-label">Error rate</span><span class="m-value mono">${w.errorRatePct}%</span></div>
+        </div>`).join('');
+    } catch (err) {
+      document.getElementById('workerGrid').innerHTML = '<div class="empty">Could not reach the Platform Ops Connector.</div>';
+    }
+  }
+  load();
+</script>
+</body>
+</html>
