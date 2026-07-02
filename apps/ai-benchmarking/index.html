@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Benchmarking Center — CEO OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1B4F8C; --primary-tint: #EAF2FF;
+    --secondary: #2F8F5B; --secondary-tint: #E7F6EC;
+    --bg: #FFFFFF; --bg-card: #F7F9FC; --border: #E5E9EF;
+    --text: #10151D; --text-muted: #6B7686;
+    --radius-card: 10px; --radius-btn: 6px; --radius-icon: 8px;
+  }
+  [data-theme="dark"] {
+    --primary: #4A90D9; --primary-tint: #1A2533;
+    --secondary: #52C57F; --secondary-tint: #16271E;
+    --bg: #0E141C; --bg-card: #141C27; --border: #243042;
+    --text: #F2F5F9; --text-muted: #8B97A8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  a { color: inherit; text-decoration: none; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 10; }
+  .back-link { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+  .back-link:hover { color: var(--primary); }
+  .icon-btn { width: 34px; height: 34px; border-radius: var(--radius-btn); border: 1px solid var(--border); background: var(--bg-card); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); font-size: 15px; }
+  .shell { max-width: 1000px; margin: 0 auto; padding: 28px; }
+  .page-head h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+  .page-head p { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 16px; }
+  .provider-name { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+  .metric-row { display: flex; justify-content: space-between; font-size: 12.5px; padding: 4px 0; }
+  .metric-row .m-label { color: var(--text-muted); }
+  .metric-row .m-value { font-weight: 500; }
+  .section-title { font-size: 14px; font-weight: 600; margin: 24px 0 12px; }
+  .log-row { display: flex; align-items: center; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; gap: 12px; }
+  .log-row:last-child { border-bottom: none; }
+  .log-task { font-weight: 500; }
+  .log-meta { color: var(--text-muted); font-size: 11.5px; margin-top: 2px; }
+  .provider-tag { font-size: 10.5px; font-weight: 500; padding: 2px 8px; border-radius: 20px; background: var(--primary-tint); color: var(--primary); }
+  .empty { text-align: center; padding: 30px; color: var(--text-muted); font-size: 13px; }
+</style>
+</head>
+<body data-theme="light">
+  <div class="topbar">
+    <a href="../../index.html" class="back-link">← Back to CEO OS</a>
+    <button class="icon-btn" id="themeToggle">☀</button>
+  </div>
+  <div class="shell">
+    <div class="page-head">
+      <h1>AI benchmarking center</h1>
+      <p>Provider performance on real business tasks — not marketing claims. Evidence-based model selection, per Doc 05 §14.</p>
+    </div>
+    <div class="grid" id="providerGrid"><div class="empty">Loading…</div></div>
+    <div class="section-title">Recent AI activity</div>
+    <div class="card" id="recentLog"></div>
+  </div>
+
+<script>
+  const root = document.body;
+  const toggle = document.getElementById('themeToggle');
+  function applyTheme(t) { root.setAttribute('data-theme', t); toggle.textContent = t === 'dark' ? '☾' : '☀'; localStorage.setItem('sap-theme', t); }
+  applyTheme(localStorage.getItem('sap-theme') || 'light');
+  toggle.addEventListener('click', () => applyTheme(root.getAttribute('data-theme') === 'light' ? 'dark' : 'light'));
+
+  const ROUTER_BASE = new URLSearchParams(location.search).get('router') || 'https://ai-router.web-supplymate.workers.dev';
+
+  function timeAgo(iso) {
+    const diff = Date.now() - new Date(iso.replace(' ', 'T') + 'Z').getTime();
+    const hours = Math.floor(diff / 3600000);
+    if (hours < 1) return 'just now';
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.floor(hours / 24)}d ago`;
+  }
+
+  async function load() {
+    try {
+      const res = await fetch(`${ROUTER_BASE}/usage`);
+      const data = await res.json();
+
+      document.getElementById('providerGrid').innerHTML = (data.byProvider || []).map(p => `
+        <div class="card">
+          <div class="provider-name">${p.provider}</div>
+          <div class="metric-row"><span class="m-label">Calls</span><span class="m-value mono">${p.calls}</span></div>
+          <div class="metric-row"><span class="m-label">Avg latency</span><span class="m-value mono">${p.avgLatencyMs} ms</span></div>
+          <div class="metric-row"><span class="m-label">Total cost</span><span class="m-value mono">$${p.totalCostUsd}</span></div>
+          <div class="metric-row"><span class="m-label">Avg rating</span><span class="m-value mono">${p.avgRating ?? '—'} / 5</span></div>
+        </div>`).join('') || '<div class="empty">No usage recorded yet.</div>';
+
+      document.getElementById('recentLog').innerHTML = (data.recent || []).map(r => `
+        <div class="log-row">
+          <div>
+            <div class="log-task">${r.task}</div>
+            <div class="log-meta">${r.department || '—'} · ${r.model} · ${timeAgo(r.created_at)}</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="mono" style="font-size:11.5px; color:var(--text-muted);">${r.latencyMs} ms</span>
+            <span class="provider-tag">${r.provider}</span>
+          </div>
+        </div>`).join('') || '<div class="empty">No activity yet.</div>';
+    } catch (err) {
+      document.getElementById('providerGrid').innerHTML = '<div class="empty">Could not reach the AI Router.</div>';
+    }
+  }
+  load();
+</script>
+</body>
+</html>
